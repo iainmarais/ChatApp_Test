@@ -6,9 +6,27 @@
 //In C# MVC these are called views.
 
 import "dart:convert";
+import "dart:async";
 
 import "package:flutter/material.dart";
 import "package:http/http.dart" as http;
+
+class AuthenticationInfo
+{
+  final bool IsAuthenticated;
+  final String? token;
+
+  AuthenticationInfo(this.IsAuthenticated, this.token);
+}
+
+//Create and set up an auth state stream
+final StreamController<AuthenticationInfo> _authController = 
+  StreamController<AuthenticationInfo>.broadcast(
+  onListen: ()
+  {
+    _authController.add(AuthenticationInfo(false, null));
+  });
+Stream<AuthenticationInfo> get authStream => _authController.stream;
 
 class LoginView extends StatefulWidget 
 {
@@ -24,7 +42,7 @@ class _LoginViewState extends State<LoginView>
   String _username = "";
   String _email_address = "";
   String _password = "";
-  String action ="";
+  String action = "";
   bool IsRegistration = true;
   //For this to work we need a form key:
   final _formKey = GlobalKey<FormState>();
@@ -53,6 +71,7 @@ class _LoginViewState extends State<LoginView>
     if(!IsValid)
     {
       //Use the snackbar class to show an error message to the user:
+      ScaffoldMessenger.of(context).clearSnackBars();
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text("Please enter a valid username and password"),
@@ -75,6 +94,7 @@ class _LoginViewState extends State<LoginView>
           if(response.statusCode == 200)
           {
             //use the snackbar widget to tell the user of a successful registration
+            ScaffoldMessenger.of(context).clearSnackBars();
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
               content: Text("User $_username successfully registered."),
@@ -83,16 +103,18 @@ class _LoginViewState extends State<LoginView>
           }
           else
           {
+            ScaffoldMessenger.of(context).clearSnackBars();
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
                 content: Text("Please enter a valid username and password"),
               )
             );
-            print(response.body);
           }
         }
         catch(ex)
         {
+          //Clear any existing infobars on the screen:
+          ScaffoldMessenger.of(context).clearSnackBars();
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text("Something went wrong, please try again."),
@@ -119,6 +141,7 @@ class _LoginViewState extends State<LoginView>
         }
         else
         {
+          ScaffoldMessenger.of(context).clearSnackBars();
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text("Please enter a valid username or email address")),
           );
@@ -131,6 +154,7 @@ class _LoginViewState extends State<LoginView>
         }
         else 
         {
+          ScaffoldMessenger.of(context).clearSnackBars();
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text("Please enter a valid password")),
           );
@@ -142,9 +166,10 @@ class _LoginViewState extends State<LoginView>
           final response = await http.post(apiUrl, body: data);
           if(response.statusCode == 200)
           {
-            final responseData=response.body;
+            final responseData=response.body; 
             final token = jsonDecode(responseData)["token"];
             //Use the snackbar widget to tell the user of a successful login:
+            ScaffoldMessenger.of(context).clearSnackBars();
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
               content: Text("User $_username successfully logged in."), 
@@ -152,20 +177,22 @@ class _LoginViewState extends State<LoginView>
             );
             //At this stage, one can proceed to the chat or forum screen.
             //This token must be passed to ensure the validity of the user's session, and cleared when the user ends their session.
-            print("Token: $token");
+            _authController.add(AuthenticationInfo(true,token));
           }
           else
           {
+            ScaffoldMessenger.of(context).clearSnackBars();
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
                 content: Text("Login failed. Username, email address or password is not valid."),
               )
             );
-            print(response.body);
+            _authController.add(AuthenticationInfo(false,null));
           }
         }
         catch(ex)
         {
+          ScaffoldMessenger.of(context).clearSnackBars();
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text("Something went wrong, please try again."),

@@ -10,6 +10,7 @@
 import "package:flutter/material.dart";
 //Our app namespaces here:
 import "./Views/LoginView.dart";
+import "./Views/ChatView.dart";
 
 void main() 
 {
@@ -39,7 +40,37 @@ class ChatApp extends StatelessWidget
     return  MaterialApp(
       title: "Chat",
       theme: darkTheme,
-      home: const LoginView(),
+      home: StreamBuilder(
+        //Check if the user is logged in:
+        stream: authStream, 
+        builder: (context, snapshot)
+        {
+          if(snapshot.connectionState == ConnectionState.active)
+          {
+            final bool IsAuthenticated = snapshot.data != null &&  snapshot.data!.IsAuthenticated;
+            //Create a new main view that can be used to open up any active chats, or visit the users' open chat forum
+            return IsAuthenticated ? const ChatView() : const LoginView();
+          }
+          else
+          {
+            return Scaffold(
+              backgroundColor: Theme.of(context).colorScheme.background,
+              appBar: AppBar(
+                title:const Text("Authenticating...")
+              ),
+              body: const Center(
+                child: Column(
+                  children: [
+                    CircularProgressIndicator(),
+                    SizedBox(height: 20),
+                    Text("Checking authentication state...")
+                  ],
+                ),
+              ),
+            );
+          }
+        }
+      ),
     );
   }
 }

@@ -17,6 +17,14 @@ class _ForumViewState extends State<ForumView>
   @override
   Widget build(BuildContext context)
   {
-    return Container();
+    return Scaffold(
+      backgroundColor: Theme.of(context).colorScheme.background,
+      appBar: AppBar(
+        title:const Text("Forum")
+      ),
+      body: const Center(
+        child: Text("This is the forum. The idea for it is to be able to see users' discussions and be able to join one of them.")
+      )
+    );
   }
 }
