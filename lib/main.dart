@@ -6,17 +6,18 @@
 //If someone wants to write dart code that resembles python, let them. The same is true for a C# or Rust developer who wants to use their style.
 
 //Remeber that real diversity is our strength!
-
 import "package:flutter/material.dart";
 //Our app namespaces here:
 import "./Views/LoginView.dart";
 import "./Views/ChatView.dart";
+import "./Utils/AuthController.dart";
+import "./Utils/SharedPrefs.dart";
 
 void main() 
 {
+  authController.initialise();
   runApp(const ChatApp());
 }
-
 
 //Entry point class for this app:
 class ChatApp extends StatelessWidget 
@@ -42,32 +43,36 @@ class ChatApp extends StatelessWidget
       theme: darkTheme,
       home: StreamBuilder(
         //Check if the user is logged in:
-        stream: authStream, 
+        stream: authController.authStream, 
         builder: (context, snapshot)
         {
           if(snapshot.connectionState == ConnectionState.active)
           {
-            final bool IsAuthenticated = snapshot.data != null &&  snapshot.data!.IsAuthenticated;
-            //Create a new main view that can be used to open up any active chats, or visit the users' open chat forum
-            return IsAuthenticated ? const ChatView() : const LoginView();
+            final bool IsAuthenticated = snapshot.data!.IsAuthenticated;
+            if (IsAuthenticated)
+            {
+              return const ChatView();
+            }
+            else
+            {
+              return const LoginView();
+            }
+          }
+          //else if there is an existing token, use that to log the user in and proceed to the chat view:
+          else if (SharedPrefs.GetToken() != null)
+          {
+            //Check if the token has not expired yet...need to build this out still...
+            //Some taffer's managed to pick the lock on our login, or they stole the key! -- reference to the Thief series of games.
+            return const ChatView();
           }
           else
           {
-            return Scaffold(
-              backgroundColor: Theme.of(context).colorScheme.background,
-              appBar: AppBar(
-                title:const Text("Authenticating...")
-              ),
-              body: const Center(
-                child: Column(
-                  children: [
-                    CircularProgressIndicator(),
-                    SizedBox(height: 20),
-                    Text("Checking authentication state...")
-                  ],
-                ),
-              ),
-            );
+            ScaffoldMessenger.of(context).clearSnackBars();
+            ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text("Damn, there has to be another way in!")
+                )
+              );
+            return const LoginView();
           }
         }
       ),

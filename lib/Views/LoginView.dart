@@ -6,27 +6,14 @@
 //In C# MVC these are called views.
 
 import "dart:convert";
-import "dart:async";
 
+import "./ChatView.dart";
 import "package:flutter/material.dart";
 import "package:http/http.dart" as http;
+//App namespaces
+import "../Utils/AuthController.dart";
+import "../Utils/SharedPrefs.dart";
 
-class AuthenticationInfo
-{
-  final bool IsAuthenticated;
-  final String? token;
-
-  AuthenticationInfo(this.IsAuthenticated, this.token);
-}
-
-//Create and set up an auth state stream
-final StreamController<AuthenticationInfo> _authController = 
-  StreamController<AuthenticationInfo>.broadcast(
-  onListen: ()
-  {
-    _authController.add(AuthenticationInfo(false, null));
-  });
-Stream<AuthenticationInfo> get authStream => _authController.stream;
 
 class LoginView extends StatefulWidget 
 {
@@ -44,6 +31,8 @@ class _LoginViewState extends State<LoginView>
   String _password = "";
   String action = "";
   bool IsRegistration = true;
+
+  final _authController = AuthController();
   //For this to work we need a form key:
   final _formKey = GlobalKey<FormState>();
   void SwitchForm()
@@ -59,6 +48,10 @@ class _LoginViewState extends State<LoginView>
   void _HandleRegister()
   {
     _HandleSubmit("register");
+  }
+  bool SetLoginAfterRegistration(bool state)
+  {
+    return state;
   }
   void _HandleLogin()
   {
@@ -99,6 +92,8 @@ class _LoginViewState extends State<LoginView>
               SnackBar(
               content: Text("User $_username successfully registered."),
               )
+              //if login after register = true:
+
             );
           }
           else
@@ -168,6 +163,10 @@ class _LoginViewState extends State<LoginView>
           {
             final responseData=response.body; 
             final token = jsonDecode(responseData)["token"];
+
+            //Store the authentication token to the shared prefs:
+            await SharedPrefs.SetToken(token);
+
             //Use the snackbar widget to tell the user of a successful login:
             ScaffoldMessenger.of(context).clearSnackBars();
             ScaffoldMessenger.of(context).showSnackBar(
@@ -175,9 +174,13 @@ class _LoginViewState extends State<LoginView>
               content: Text("User $_username successfully logged in."), 
               )
             );
-            //At this stage, one can proceed to the chat or forum screen.
-            //This token must be passed to ensure the validity of the user's session, and cleared when the user ends their session.
-            _authController.add(AuthenticationInfo(true,token));
+            _authController.setAuthentication(true,token);
+            //At this point authentication has completed.
+            Navigator.pushReplacement(
+              context, MaterialPageRoute(
+                builder: (context) => const ChatView(),
+              )
+            );
           }
           else
           {
@@ -187,7 +190,7 @@ class _LoginViewState extends State<LoginView>
                 content: Text("Login failed. Username, email address or password is not valid."),
               )
             );
-            _authController.add(AuthenticationInfo(false,null));
+            _authController.setAuthentication(false,null);
           }
         }
         catch(ex)
@@ -390,11 +393,11 @@ class _LoginViewState extends State<LoginView>
                             const SizedBox(width: 20),
                             ElevatedButton(
                               onPressed: IsRegistration ? _HandleRegister:_HandleLogin,
-                              child: IsRegistration ? const Text("Register") : const Text("Login"),
+                              child: IsRegistration ? const Text("Register") : const Text("Log in"),
                             ),
+                            //=
                           ],
                         ),
-                        const SizedBox(height: 20),
                     ],
                   )
               )
