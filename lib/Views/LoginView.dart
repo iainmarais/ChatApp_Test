@@ -5,19 +5,13 @@
 //Views are full screen widgets, so here we do use the scaffold.
 //In C# MVC these are called views.
 
-import "dart:convert";
-
-import "./ChatView.dart";
+import "package:app02/Utils/AuthManager.dart";
 import "package:flutter/material.dart";
-import "package:http/http.dart" as http;
 //App namespaces
-import "../Utils/AuthController.dart";
-import "../Utils/SharedPrefs.dart";
-
-
 class LoginView extends StatefulWidget 
 {
-  const LoginView({Key? key}) : super(key: key);
+  final AuthManager authManager;
+  const LoginView({required this.authManager,super.key});
 
   @override
   State<LoginView> createState() => _LoginViewState();
@@ -26,13 +20,12 @@ class LoginView extends StatefulWidget
 class _LoginViewState extends State<LoginView> 
 {
   //Create two props that can be set to the values returned from the inputs:
-  String _username = "";
   String _email_address = "";
   String _password = "";
   String action = "";
   bool IsRegistration = true;
 
-  final _authController = AuthController();
+
   //For this to work we need a form key:
   final _formKey = GlobalKey<FormState>();
   void SwitchForm()
@@ -47,6 +40,7 @@ class _LoginViewState extends State<LoginView>
   }
   void _HandleRegister()
   {
+    _formKey.currentState!.save();
     _HandleSubmit("register");
   }
   bool SetLoginAfterRegistration(bool state)
@@ -55,153 +49,58 @@ class _LoginViewState extends State<LoginView>
   }
   void _HandleLogin()
   {
+    _formKey.currentState!.save();
     _HandleSubmit("login");
   }
   void _HandleSubmit(String action) async
   {
-    final bool IsValid = _formKey.currentState!.validate();
-    //Note to self: validation needs to be improved so as to check for an existing username or email address, and likewise notify the user of this.
-    if(!IsValid)
+    try
     {
-      //Use the snackbar class to show an error message to the user:
-      ScaffoldMessenger.of(context).clearSnackBars();
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Please enter a valid username and password"),
-        )
-      );
-      return;
-    }
-    else
-    {
-      _formKey.currentState!.save();
-      final apiUrl = Uri.parse("http://localhost/flutterchat-backend/api/main/post.php?action=$action");
-      //Check if a new user is registering or an existing user is logging in:
-      if(IsRegistration==true)
+      if (action == "register")
       {
-        action = "register";
-        final data = {"username": _username, "email_address": _email_address, "password": _password};
-        try
-        {
-          final response = await http.post(apiUrl, body: data);
-          if(response.statusCode == 200)
+          await widget.authManager.client!.auth.signUp(
+          email: _email_address,
+          password: _password,
+        );
+          if (!context.mounted)
           {
-            //use the snackbar widget to tell the user of a successful registration
-            ScaffoldMessenger.of(context).clearSnackBars();
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-              content: Text("User $_username successfully registered."),
-              )
-              //if login after register = true:
-
-            );
+            return;
           }
-          else
-          {
-            ScaffoldMessenger.of(context).clearSnackBars();
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text("Please enter a valid username and password"),
-              )
-            );
-          }
-        }
-        catch(ex)
-        {
-          //Clear any existing infobars on the screen:
           ScaffoldMessenger.of(context).clearSnackBars();
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text("Something went wrong, please try again."),
-            )
+            const SnackBar(content: Text("Login successful."))
           );
-          return;
-        }
       }
-      //End of registration code.
-
-      //Handle the login process:
+      else if(action == "login")
+      {
+          await widget.authManager.client!.auth.signInWithPassword(
+          email: _email_address,
+          password: _password,
+        );
+          if (!context.mounted)
+          {
+            return;
+          }
+          ScaffoldMessenger.of(context).clearSnackBars();
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("Login successful."))
+          );
+      }
+      //Should not get here, but for in case:
       else
       {
-        action = "login";
-        //Create a new dictionary to hold these mappings so that they can be sent as a body to the server
-        Map<String, String> data = {};
-        if (_username.isNotEmpty)
-        {
-          data["identifier"] = _username;
-        }
-        else if (_email_address.isNotEmpty)
-        {
-          data["identifier"] = _email_address;
-        }
-        else
-        {
-          ScaffoldMessenger.of(context).clearSnackBars();
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text("Please enter a valid username or email address")),
-          );
-          //If this validation fails, the process should be stopped for security reasons.
-          return;
-        }
-        if (_password.isNotEmpty)
-        {
-          data["password"] = _password;
-        }
-        else 
-        {
-          ScaffoldMessenger.of(context).clearSnackBars();
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text("Please enter a valid password")),
-          );
-          //If this validation fails, the process should be stopped for security reasons.
-          return;
-        }
-        try
-        {
-          final response = await http.post(apiUrl, body: data);
-          if(response.statusCode == 200)
-          {
-            final responseData=response.body; 
-            final token = jsonDecode(responseData)["token"];
-
-            //Store the authentication token to the shared prefs:
-            await SharedPrefs.SetToken(token);
-
-            //Use the snackbar widget to tell the user of a successful login:
-            ScaffoldMessenger.of(context).clearSnackBars();
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-              content: Text("User $_username successfully logged in."), 
-              )
-            );
-            _authController.setAuthentication(true,token);
-            //At this point authentication has completed.
-            Navigator.pushReplacement(
-              context, MaterialPageRoute(
-                builder: (context) => const ChatView(),
-              )
-            );
-          }
-          else
-          {
-            ScaffoldMessenger.of(context).clearSnackBars();
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text("Login failed. Username, email address or password is not valid."),
-              )
-            );
-            _authController.setAuthentication(false,null);
-          }
-        }
-        catch(ex)
-        {
-          ScaffoldMessenger.of(context).clearSnackBars();
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text("Something went wrong, please try again."),
-            )
-          );
-        }
+        return;
+      }
+    }
+    //It's like shooting fish in a barrel.
+    catch(ex)
+    {
+      if (ex.toString().contains("Invalid login credentials"))
+      {
+        ScaffoldMessenger.of(context).clearSnackBars();
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Invalid username or password."))
+        );
       }
     }
   }
@@ -219,7 +118,7 @@ class _LoginViewState extends State<LoginView>
                       children: [
                         TextFormField(
                           decoration: const InputDecoration(
-                            labelText: "Username or email address",
+                            labelText: "Email address",
                               ),
                               //Disable autocorrect and autocapitalise:
                             keyboardType: TextInputType.emailAddress,
@@ -236,89 +135,9 @@ class _LoginViewState extends State<LoginView>
                               },
                               onSaved: (value)
                               {
-                                _username = value!;
-                              }
-                            ),
-                        TextFormField(
-                          decoration: const InputDecoration(
-                            labelText: "Password"
-                              ),
-                              //Disable autocorrect and autocapitalise:
-                            obscureText: true,
-                            autocorrect: false,
-                            textCapitalization: TextCapitalization.none,
-                            keyboardType: TextInputType.text,
-                            validator: (value)
-                              {
-                                if(value==null || value.trim().length < 6)
-                                {
-                                  return "Please enter a valid password of at least 6 characters.";
-                                }
-                                //If all is good:
-                                return null;
-                              },
-                            onSaved: (value)
-                              {
-                                _password = value!;
-                              }
-                            ),
-                        const SizedBox(height: 20),
-                      ]
-                    )
-                  )
-                );
-    Widget RegistrationFormContent = SingleChildScrollView(
-                  //Use Padding: 16 all dirs:
-                  padding: const EdgeInsets.all(16),
-                  child: Form(
-                    key: _formKey,
-                    child:Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        TextFormField(
-                          decoration: const InputDecoration(
-                            labelText: "Username",
-                              ),
-                              //Disable autocorrect and autocapitalise:
-                            keyboardType: TextInputType.emailAddress,
-                            autocorrect: false,
-                            textCapitalization: TextCapitalization.none,
-                            validator: (value) 
-                              {
-                                if(value==null || value.trim().isEmpty)
-                                {
-                                  return "Please enter a username";
-                                }
-                                //If all is good:
-                                return null;
-                              },
-                              onSaved: (value)
-                              {
-                                _username = value!;
-                              }
-                            ),
-                        TextFormField(
-                          decoration: const InputDecoration(
-                            labelText: "Email address",
-                              ),
-                              //Disable autocorrect and autocapitalise:
-                            keyboardType: TextInputType.emailAddress,
-                            autocorrect: false,
-                            textCapitalization: TextCapitalization.none,
-                            validator: (value) 
-                              {
-                                if(value==null || value.trim().isEmpty)
-                                {
-                                  return "Please enter a valid email address";
-                                }
-                                //If all is good:
-                                return null;
-                              },
-                              onSaved: (value)
-                              {
                                 _email_address = value!;
                               }
-                            ),    
+                            ),
                         TextFormField(
                           decoration: const InputDecoration(
                             labelText: "Password"
@@ -347,8 +166,9 @@ class _LoginViewState extends State<LoginView>
                     )
                   )
                 );
+    
     //Switch the form based on the state of the IsRegistration boolean prop:
-    Widget FormContent = IsRegistration ? RegistrationFormContent : LoginFormContent;
+    Widget FormContent = LoginFormContent;
     //Construct a form widget beneath a scaffold:
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.background,
@@ -395,7 +215,7 @@ class _LoginViewState extends State<LoginView>
                               onPressed: IsRegistration ? _HandleRegister:_HandleLogin,
                               child: IsRegistration ? const Text("Register") : const Text("Log in"),
                             ),
-                            //=
+                            const SizedBox(width: 20),
                           ],
                         ),
                     ],
