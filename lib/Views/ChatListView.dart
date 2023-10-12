@@ -3,9 +3,11 @@
 //needed for all UI elements.
 import "package:flutter/material.dart";
 
+import "../Utils/AuthManager.dart";
 class ChatListView extends StatefulWidget
 {
-  const ChatListView({Key? key}) : super(key: key);
+  final AuthManager authManager;
+  const ChatListView({super.key, required this.authManager});
 
   @override
   State<ChatListView> createState() => _ChatListViewState();

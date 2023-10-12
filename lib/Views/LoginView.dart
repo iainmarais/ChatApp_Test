@@ -5,9 +5,13 @@
 //Views are full screen widgets, so here we do use the scaffold.
 //In C# MVC these are called views.
 
+import "dart:developer";
+import "dart:io";
+
 import "package:app02/Utils/AuthManager.dart";
 import "package:flutter/material.dart";
 //App namespaces
+import "../Widgets/UserProfileImageSelector.dart";
 class LoginView extends StatefulWidget 
 {
   final AuthManager authManager;
@@ -22,8 +26,11 @@ class _LoginViewState extends State<LoginView>
   //Create two props that can be set to the values returned from the inputs:
   String _email_address = "";
   String _password = "";
+  String _username = "";
+  File? _SelectedImage;
   String action = "";
-  bool IsRegistration = true;
+  bool IsInRegistrationMode = true;
+  bool IsProcessing = false;
 
 
   //For this to work we need a form key:
@@ -31,7 +38,7 @@ class _LoginViewState extends State<LoginView>
   void SwitchForm()
   {
     //Switch the form based on the state of the IsRegistration boolean prop:
-    IsRegistration = !IsRegistration;
+    IsInRegistrationMode = !IsInRegistrationMode;
     setState(() 
     {
       //Update the state of the form:
@@ -56,20 +63,47 @@ class _LoginViewState extends State<LoginView>
   {
     try
     {
+      setState(()
+      {
+        IsProcessing = true;
+      });
       if (action == "register")
       {
-          await widget.authManager.client!.auth.signUp(
+          final response = await widget.authManager.client!.auth.signUp(
           email: _email_address,
           password: _password,
         );
-          if (!context.mounted)
-          {
-            return;
-          }
-          ScaffoldMessenger.of(context).clearSnackBars();
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text("Login successful."))
-          );
+        if (!context.mounted)
+        {
+          return;
+        }
+        ScaffoldMessenger.of(context).clearSnackBars();
+        ScaffoldMessenger.of(context).showSnackBar(            
+          const SnackBar(content: Text("Login successful."))
+        );
+        //At a later stage if the user elects not to upload a profile image, we should generate a placeholder using their initial.
+        if (_SelectedImage == null)
+        { 
+          log("No profile image selected.");
+        }
+        //Image not yet available.
+        widget.authManager.UpdateUserDetails(
+          _username,
+          null,
+          null,
+          null,
+          null,
+          _email_address);
+          await widget.authManager.storage?.from("images/profiles").upload("${response.user!.id}.${_SelectedImage!.path.split(".").last}", _SelectedImage!);
+          final imageLink = widget.authManager.storage?.from("images/profiles").getPublicUrl("${response.user!.id}.${_SelectedImage!.path.split(".").last}");
+          //Rerun the update when it does become available.
+          widget.authManager.UpdateUserDetails(
+          _username,
+          null,
+          null,
+          null,
+          imageLink,
+          _email_address);
       }
       else if(action == "login")
       {
@@ -97,11 +131,30 @@ class _LoginViewState extends State<LoginView>
     {
       if (ex.toString().contains("Invalid login credentials"))
       {
+        if (!context.mounted)
+        {
+          return;
+        }
         ScaffoldMessenger.of(context).clearSnackBars();
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("Invalid username or password."))
         );
       }
+      else
+      {
+        if (!context.mounted)
+        {
+          return;
+        }
+        ScaffoldMessenger.of(context).clearSnackBars();
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Something went wrong.")),
+        );
+      }
+      setState(() 
+      {
+        IsProcessing = false;
+      });
     }
   }
  
@@ -116,6 +169,10 @@ class _LoginViewState extends State<LoginView>
                     child:Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
+                        if (IsInRegistrationMode == true) UserProfileImageSelector(onImageSelected: (image)
+                          {
+                          _SelectedImage=image;
+                          }),
                         TextFormField(
                           decoration: const InputDecoration(
                             labelText: "Email address",
@@ -138,6 +195,30 @@ class _LoginViewState extends State<LoginView>
                                 _email_address = value!;
                               }
                             ),
+                        //Render this only if in registration mode:
+                        if(IsInRegistrationMode ==true)
+                        TextFormField(
+                          decoration: const InputDecoration(
+                            labelText: "Username",
+                          ),
+                          //Disable autocorrect and autocapitalise:
+                          autocorrect: false,
+                          textCapitalization: TextCapitalization.none,
+                          enableSuggestions: false,
+                          validator: (value)
+                          {
+                            if(value==null || value.trim().isEmpty || value.trim().length < 4)
+                            {
+                              return "Please enter a username of at least 4 characters.";
+                            }
+                            //If all is good:
+                            return null;
+                          },
+                          onSaved: (value)
+                          {
+                            _username = value!;
+                          }
+                        ),
                         TextFormField(
                           decoration: const InputDecoration(
                             labelText: "Password"
@@ -173,7 +254,7 @@ class _LoginViewState extends State<LoginView>
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.background,
       appBar: AppBar(
-        title:const Text("Login")
+      title: IsInRegistrationMode? const Text("Register"):const Text("Login")
       ),
       body: Center(
         child: SingleChildScrollView(
@@ -202,22 +283,30 @@ class _LoginViewState extends State<LoginView>
                   child:Column(
                     children: [
                       FormContent,
-                      Row(
+                      IsProcessing 
+                      ? const Column(
+                        children: [
+                          CircularProgressIndicator(),
+                          SizedBox(height: 20),
+                          Text("Waiting for response...")
+                        ],
+                      )
+                      : Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [                      
                             TextButton(
                               //Toggle the state of the IsRegistration boolean prop:
                               onPressed: SwitchForm,
-                              child: IsRegistration ? const Text("New user: "):const Text("Existing user")
+                              child: IsInRegistrationMode ? const Text("New user: "):const Text("Existing user:")
                             ),
                             const SizedBox(width: 20),
                             ElevatedButton(
-                              onPressed: IsRegistration ? _HandleRegister:_HandleLogin,
-                              child: IsRegistration ? const Text("Register") : const Text("Log in"),
+                              onPressed: IsInRegistrationMode ? _HandleRegister:_HandleLogin,
+                              child: IsInRegistrationMode ? const Text("Register") : const Text("Log in"),
                             ),
-                            const SizedBox(width: 20),
                           ],
                         ),
+                      const SizedBox(height: 20),
                     ],
                   )
               )
