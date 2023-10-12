@@ -5,6 +5,7 @@
 //Rigidly enforcing conventions stifles creativity. Instead of forcing down a fixed style on app developers, embrace their diversity of style.
 //If someone wants to write dart code that resembles python, let them. The same is true for a C# or Rust developer who wants to use their style.
 
+//My style: definitely 100% C#, or else I'd be wearing glasses!
 //Remember that real diversity is our strength!
 
 //Project notes:
