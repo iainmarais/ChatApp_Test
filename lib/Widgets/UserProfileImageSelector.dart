@@ -12,19 +12,21 @@ class UserProfileImageSelector extends StatefulWidget
   final authManager = AuthManager();
   final void Function(File image) onImageSelected;
   final String? currentImage;
+  final String? username;
   //Allow for a large image preview, useful for previewing them in the profile editor
   final bool? UseLargeImagePreview;
-  UserProfileImageSelector({super.key, required this.onImageSelected, this.currentImage, this.UseLargeImagePreview});
+  UserProfileImageSelector({super.key, this.username, required this.onImageSelected, this.currentImage, this.UseLargeImagePreview});
   @override
   State<UserProfileImageSelector> createState() => _UserProfileImageSelectorState();
 }
 
 class _UserProfileImageSelectorState extends State<UserProfileImageSelector>
 {  
-  
   File? _SelectedImage;
   String? _CurrentImage;
   bool? _UseLargeImagePreview;
+  //Enable autogenerator:
+  bool? useAutoGen = false;
 
   @override
   void initState() 
@@ -58,17 +60,23 @@ class _UserProfileImageSelectorState extends State<UserProfileImageSelector>
       });
     }
   }
-  
   void _TakePicture() async
   {
     //Nothing too huge:
     final image = await ImagePicker().pickImage(source: ImageSource.camera, imageQuality: 50, maxHeight: 150, maxWidth: 150);
     if (image == null)
     {
-      return;
+      if(useAutoGen==true)
+      {
+         log("To be implemented still.");
+      }
+      else
+      {
+        return;
+      }
     }
     setState(() {
-      _SelectedImage = File(image.path);
+      _SelectedImage = File(image!.path);
     });
     widget.onImageSelected(_SelectedImage!);
   }
@@ -78,10 +86,17 @@ class _UserProfileImageSelectorState extends State<UserProfileImageSelector>
     //if the image is null, return
     if (image == null)
     {
-      return;
+      if(useAutoGen==true)
+      {
+        log("To be implemented still.");
+      }
+      else
+      {
+        return;
+      }
     }
     setState(() {
-      _SelectedImage = File(image.path);
+      _SelectedImage = File(image!.path);
     });
     widget.onImageSelected(_SelectedImage!);
   }
@@ -90,6 +105,25 @@ class _UserProfileImageSelectorState extends State<UserProfileImageSelector>
   {
     log("(build) widget.currentImage value:  ${widget.currentImage}");
     log("(build) _CurrentImage value:  $_CurrentImage");
+    DecorationImage? decoration;
+    if (_CurrentImage != null)
+    {
+      decoration = DecorationImage(
+        image: NetworkImage(_CurrentImage!),
+      );
+    }
+    else if (_SelectedImage != null)
+    {
+      decoration = DecorationImage(
+        image: FileImage(_SelectedImage!),
+      );  
+    }
+    else
+    {
+      decoration = const DecorationImage(
+        image: AssetImage("images/chat-speechbubbles.png"),
+      );
+    }
     return Column(
       children: [
         //Image preview:
@@ -98,17 +132,26 @@ class _UserProfileImageSelectorState extends State<UserProfileImageSelector>
            height: _UseLargeImagePreview! ? 100 : 50,
           decoration: BoxDecoration(borderRadius: BorderRadius.circular(10),
             image: DecorationImage(
-              image: _SelectedImage != null 
-                ? FileImage(_SelectedImage!) 
-                : _CurrentImage != null 
-                  ? NetworkImage(_CurrentImage!)
-                  : const AssetImage("images/chat-speechbubbles.png") as ImageProvider,
+            image: decoration.image,
               fit: BoxFit.cover
             )
           ),
           //Set the foreground image to the one stored on the backend linked against the user profile.
         ),
         const SizedBox(height: 20),
+        //Create a checkbox to handle the useAutoGen prop:
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Text("Use auto-generated image: "),
+            const SizedBox(width: 10),
+            Checkbox(
+              value: useAutoGen,
+              //Invert the value state:
+              onChanged:(value) => setState(() => useAutoGen = value),
+            ),
+          ],
+        ),
         //Functions:
         Row(
           mainAxisAlignment: MainAxisAlignment.center,

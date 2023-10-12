@@ -45,7 +45,7 @@ class _ChatMessageListState extends State<ChatMessageList>
                       ),
                     ),
                     ),
-                    title: Text(snapshot.data![index]["username"] ?? "", style: TextStyle(fontWeight: FontWeight.bold),) ,
+                    title: Text(snapshot.data![index]["username"] ?? "", style: const TextStyle(fontWeight: FontWeight.bold),) ,
                     subtitle: Text(snapshot.data![index]["content"] ?? ""),
                   ),
                 );

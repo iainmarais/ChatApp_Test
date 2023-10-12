@@ -1,6 +1,5 @@
 // ignore_for_file: file_names, class_names, non_constant_identifier_names
 import "dart:developer";
-import "dart:io";
 import 'package:flutter/material.dart';
 import "package:supabase_flutter/supabase_flutter.dart";
 
@@ -23,7 +22,6 @@ class UserProfileEditorView extends StatefulWidget
 class _UserProfileEditorViewState extends State<UserProfileEditorView>
 {
   bool? IsProcessing = false;
-  File? _SelectedImage;
   final newUsernameController = TextEditingController();
   final newFirstnameController = TextEditingController();
   final newSurnameController = TextEditingController();
@@ -162,7 +160,7 @@ class _UserProfileEditorViewState extends State<UserProfileEditorView>
           const SizedBox(height: 14.0),
           const Text("Update your user profile details for your account."),
           const SizedBox(height: 20.0),
-            UserProfileImageSelector(onImageSelected: (profileImage)
+          UserProfileImageSelector(username: chatUser.username,onImageSelected: (profileImage)
             {
               setState(() {
                 chatUser.profileImage = profileImage.path;

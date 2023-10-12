@@ -169,7 +169,7 @@ class _LoginViewState extends State<LoginView>
                     child:Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        if (IsInRegistrationMode == true) UserProfileImageSelector(onImageSelected: (image)
+                        if (IsInRegistrationMode == true) UserProfileImageSelector(username: _username, onImageSelected: (image)
                           {
                           _SelectedImage=image;
                           }),
