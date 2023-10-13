@@ -27,6 +27,11 @@ class _ChatViewState extends State<ChatView>
   void HandleLogoff() async
   {
     await widget.authManager.client!.auth.signOut();
+    if(!context.mounted)
+    {
+      return;
+    }
+    Navigator.of(context).pop();
   }
   @override
   Widget build(BuildContext context)

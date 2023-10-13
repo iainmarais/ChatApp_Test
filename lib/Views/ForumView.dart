@@ -24,6 +24,11 @@ class _ForumViewState extends State<ForumView>
   void HandleLogoff() async
   {
     await _authManager.client!.auth.signOut();
+    if(!context.mounted)
+    {
+      return;
+    }
+    Navigator.of(context).pop();
   }
 
   @override
