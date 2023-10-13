@@ -88,22 +88,15 @@ class _LoginViewState extends State<LoginView>
         }
         //Image not yet available.
         widget.authManager.UpdateUserDetails(
-          _username,
-          null,
-          null,
-          null,
-          null,
-          _email_address);
+          new_username:_username,
+          new_emailAddress:_email_address);
           await widget.authManager.storage?.from("images/profiles").upload("${response.user!.id}.${_SelectedImage!.path.split(".").last}", _SelectedImage!);
           final imageLink = widget.authManager.storage?.from("images/profiles").getPublicUrl("${response.user!.id}.${_SelectedImage!.path.split(".").last}");
           //Rerun the update when it does become available.
           widget.authManager.UpdateUserDetails(
-          _username,
-          null,
-          null,
-          null,
-          imageLink,
-          _email_address);
+          new_username:_username,
+          new_profileImage:imageLink,
+          new_emailAddress:_email_address);
       }
       else if(action == "login")
       {

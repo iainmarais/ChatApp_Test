@@ -2,6 +2,8 @@
 
 //This will serve as the entry point for an active chat session. These details will have to be retrieved from the backend.
 
+import "dart:io";
+
 import "package:app02/Widgets/ChatMessage.dart";
 import "package:app02/Widgets/ChatMessageList.dart";
 import "package:flutter/material.dart";
@@ -79,13 +81,16 @@ class _MainViewState extends State<MainView>
                       itemBuilder: (context, index)
                       {
                         return ListTile(
+                          tileColor: Theme.of(context).colorScheme.primaryContainer,
                           leading: Container(
                             width: 50,
                             height: 50,
                             decoration:BoxDecoration(
                               borderRadius: BorderRadius.circular(10),
                               image: DecorationImage(
-                                image:NetworkImage(snapshot.data![index]["profile_image"])
+                                image: snapshot.data![index]["profile_image"] == null
+                                ? FileImage(File("images/avatars-src/placeholder-default.png")) as ImageProvider
+                                : NetworkImage(snapshot.data![index]["profile_image"])
                               )
                             )
                           ),

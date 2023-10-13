@@ -40,7 +40,7 @@ class AuthManager
     //Deeper into the future: allow the user to specify their own backend provider. Vendor lock-in be damned!
     _client = SupabaseClient(host, anonKey);
   }
-  void UpdateUserDetails(String? username, String? firstname, String? surname, String? about, String? profileImage, String? emailAddress) async
+  void UpdateUserDetails({String? new_username, String? new_firstname, String? new_surname, String? new_about, String? new_profileImage, String? new_emailAddress}) async
   {
     //Can use this as a check to see if the table is present.
     try
@@ -53,15 +53,13 @@ class AuthManager
         if(currentUser.length > 0)
         {
           //This now correctly checks for a match in the table
-          final updateResponse = await _client!.from("chat_users").update({"user_id": _client!.auth.currentUser!.id,"username": username, "firstname": firstname, "surname": surname, "about": about, "profile_image": profileImage, "email_address": emailAddress}).eq("user_id", _client!.auth.currentUser!.id);
-          log(updateResponse.toString());
+          await _client!.from("chat_users").update({"user_id": _client!.auth.currentUser!.id,"username": new_username, "firstname": new_firstname, "surname": new_surname, "about": new_about, "profile_image": new_profileImage, "email_address": new_emailAddress}).eq("user_id", _client!.auth.currentUser!.id);
         }
         else
         {
           //If for whatever reason this entry is deleted from the table, this will create it: 
           //The exception being raised makes no sense, because the row is null. Don't raise the exception, create the row rather.
-          final updateResponse = await _client!.from("chat_users").insert({"user_id": _client!.auth.currentUser!.id,"username": username, "firstname": firstname, "surname": surname, "about": about, "profile_image": profileImage, "email_address": emailAddress}).eq("user_id", _client!.auth.currentUser!.id);
-          log(updateResponse.toString());
+          await _client!.from("chat_users").insert({"user_id": _client!.auth.currentUser!.id,"username": new_username, "firstname": new_firstname, "surname": new_surname, "about": new_about, "profile_image": new_profileImage, "email_address": new_emailAddress}).eq("user_id", _client!.auth.currentUser!.id);
         }
       }
       else
@@ -83,11 +81,6 @@ class AuthManager
     List<dynamic> UserList = await _client!.from("chat_users").select();
     if (UserList.isNotEmpty)
     {
-      //See what is returned: 
-      for (var user in UserList)
-      {
-        log(user.toString());
-      }
       return UserList;
     }
     else

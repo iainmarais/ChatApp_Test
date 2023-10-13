@@ -6,7 +6,6 @@ import "package:flutter/material.dart";
 import "package:image_picker/image_picker.dart";
 
 import "../Utils/AuthManager.dart";
-
 class UserProfileImageSelector extends StatefulWidget
 {
   final authManager = AuthManager();
@@ -26,7 +25,7 @@ class _UserProfileImageSelectorState extends State<UserProfileImageSelector>
   String? _CurrentImage;
   bool? _UseLargeImagePreview;
   //Enable autogenerator:
-  bool? useAutoGen = false;
+  bool? UseTransparency = false;
 
   @override
   void initState() 
@@ -60,51 +59,78 @@ class _UserProfileImageSelectorState extends State<UserProfileImageSelector>
       });
     }
   }
-  void _TakePicture() async
+
+  void AutoGenerateProfileImage()
   {
-    //Nothing too huge:
-    final image = await ImagePicker().pickImage(source: ImageSource.camera, imageQuality: 50, maxHeight: 150, maxWidth: 150);
-    if (image == null)
+    String? ThemeName;
+    if (Theme.of(context).brightness == Brightness.dark)
     {
-      if(useAutoGen==true)
+      ThemeName = "dark";
+    }
+    else
+    {
+      ThemeName = "light";
+    }
+    File image;
+    if(widget.username == null || widget.username!.isEmpty)
+    {
+      if (UseTransparency == true)
       {
-         log("To be implemented still.");
+        image = File("images/avatars-src/$ThemeName/transparent/placeholder-default.png");
       }
       else
       {
-        return;
+        image = File("images/avatars-src/$ThemeName/placeholder-default.png");
+      }
+    }
+    else
+    {
+      final initial = widget.username![0];
+      if(UseTransparency == true)
+      {
+        image = File("images/avatars-src/$ThemeName/transparent/placeholder-$initial.png");
+      }
+      else
+      {
+      image = File("images/avatars-src/$ThemeName/placeholder-$initial.png");
       }
     }
     setState(() {
-      _SelectedImage = File(image!.path);
+      _SelectedImage = image;
     });
     widget.onImageSelected(_SelectedImage!);
   }
-  void _UploadImage() async
+
+  void _TakePicture() async
   {
-    final image = await ImagePicker().pickImage(source: ImageSource.gallery);
-    //if the image is null, return
+    //Nothing too huge:
+    var image = await ImagePicker().pickImage(source: ImageSource.camera, imageQuality: 50, maxHeight: 150, maxWidth: 150);
     if (image == null)
     {
-      if(useAutoGen==true)
-      {
-        log("To be implemented still.");
-      }
-      else
-      {
-        return;
-      }
+      return;  
     }
     setState(() {
-      _SelectedImage = File(image!.path);
+      _SelectedImage = File(image.path);
+    });
+    widget.onImageSelected(_SelectedImage!);
+  }
+
+  void _UploadImage() async
+  {
+    var image = await ImagePicker().pickImage(source: ImageSource.gallery);
+
+    if (image == null)
+    {
+      return;
+    }
+    setState(() {
+      _SelectedImage = File(image.path);
     });
     widget.onImageSelected(_SelectedImage!);
   }
   @override
   Widget build(BuildContext context)
   {
-    log("(build) widget.currentImage value:  ${widget.currentImage}");
-    log("(build) _CurrentImage value:  $_CurrentImage");
     DecorationImage? decoration;
     if (_CurrentImage != null)
     {
@@ -130,7 +156,7 @@ class _UserProfileImageSelectorState extends State<UserProfileImageSelector>
         Container(
            width: _UseLargeImagePreview! ? 100 : 50,
            height: _UseLargeImagePreview! ? 100 : 50,
-          decoration: BoxDecoration(borderRadius: BorderRadius.circular(10),
+          decoration: BoxDecoration(borderRadius: BorderRadius.circular(8),
             image: DecorationImage(
             image: decoration.image,
               fit: BoxFit.cover
@@ -139,17 +165,17 @@ class _UserProfileImageSelectorState extends State<UserProfileImageSelector>
           //Set the foreground image to the one stored on the backend linked against the user profile.
         ),
         const SizedBox(height: 20),
-        //Create a checkbox to handle the useAutoGen prop:
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Text("Use auto-generated image: "),
-            const SizedBox(width: 10),
-            Checkbox(
-              value: useAutoGen,
-              //Invert the value state:
-              onChanged:(value) => setState(() => useAutoGen = value),
-            ),
+            const Text("Use transparency: "),
+            const SizedBox(width: 20),
+            Checkbox(value: UseTransparency, 
+                    onChanged: (value){
+                      setState(() {
+                        UseTransparency = value;
+                      });
+                    })
           ],
         ),
         //Functions:
@@ -166,6 +192,12 @@ class _UserProfileImageSelectorState extends State<UserProfileImageSelector>
               onPressed: _UploadImage,
               icon: const Icon(Icons.image),
               label: const Text("Upload image"),
+            ),
+            const SizedBox(width: 20),
+            ElevatedButton.icon(
+              onPressed: AutoGenerateProfileImage,
+              icon: const Icon(Icons.autorenew),
+              label: const Text("Auto-generate image"),
             )
           ]
 

@@ -1,5 +1,6 @@
 // ignore_for_file: file_names, class_names, non_constant_identifier_names
 import "dart:developer";
+import "dart:io";
 import 'package:flutter/material.dart';
 import "package:supabase_flutter/supabase_flutter.dart";
 
@@ -33,6 +34,7 @@ class _UserProfileEditorViewState extends State<UserProfileEditorView>
   late AuthManager _authManager;
   late ChatUserModel chatUser;
   late User? user;
+  File? _profileImage;
 
   //User inputs:
   String? newUsername;
@@ -40,6 +42,7 @@ class _UserProfileEditorViewState extends State<UserProfileEditorView>
   String? newSurname;
   String? newAbout;
   String? newEmailAddress;
+  String? newProfileImageLink;
 
   @override 
   void initState()
@@ -52,13 +55,37 @@ class _UserProfileEditorViewState extends State<UserProfileEditorView>
     UpdateProfile();
   }
 
+  //This method is used to update the profile image. 
+  void UpdateProfileImage() async
+  {
+    try
+    {
+      if(_profileImage!=null) 
+      {
+          await widget.authManager.storage?.from("images").remove(["profiles/${user!.id}.${_profileImage!.path.split(".").last}"]);
+          await widget.authManager.storage?.from("images/profiles").upload("${user!.id}.${_profileImage!.path.split(".").last}", _profileImage!);
+          final imageLink = widget.authManager.storage?.from("images/profiles").getPublicUrl("${user!.id}.${_profileImage!.path.split(".").last}");
+          chatUser.profileImage = imageLink;
+          _authManager.UpdateUserDetails(new_profileImage: imageLink);
+      }
+      else
+      {
+        log("nothing received.");
+      }
+    }
+    catch(ex)
+    {
+      log(ex.toString());
+    }
+  }
+
   void UpdateProfile() async
   {
     try
     {
       final chatUserSnapshot = await widget.authManager.client!.from("chat_users").select().eq("user_id", user?.id).single();
       if(chatUserSnapshot != null)
-      {
+      { 
         setState(()
         {
           IsProcessing = true;
@@ -73,6 +100,7 @@ class _UserProfileEditorViewState extends State<UserProfileEditorView>
           newFirstname = chatUser.firstname ?? '';
           newSurname = chatUser.surname ?? '';
           newAbout = chatUser.about ?? '';
+          newEmailAddress = chatUser.emailAddress ?? '';
           // Set the initial values of the TextEditingController
           newUsernameController.text = chatUser.username ?? '';
           newFirstnameController.text = chatUser.firstname ?? '';
@@ -127,7 +155,7 @@ class _UserProfileEditorViewState extends State<UserProfileEditorView>
                 chatUser.about = newAbout;
                 chatUser.emailAddress = newEmailAddress;
                 chatUser.profileImage = chatUser.profileImage;
-                widget.authManager.UpdateUserDetails(newUsername, newFirstname, newSurname, newAbout, chatUser.profileImage, newEmailAddress);
+                widget.authManager.UpdateUserDetails(new_username: newUsername, new_firstname: newFirstname,new_surname: newSurname, new_about:newAbout, new_profileImage: chatUser.profileImage, new_emailAddress: newEmailAddress);
                 //Return to the previous view:
                 Navigator.pop(context);
               }
@@ -163,7 +191,8 @@ class _UserProfileEditorViewState extends State<UserProfileEditorView>
           UserProfileImageSelector(username: chatUser.username,onImageSelected: (profileImage)
             {
               setState(() {
-                chatUser.profileImage = profileImage.path;
+                _profileImage = profileImage;
+                UpdateProfileImage();
               });
             },
             currentImage: chatUser.profileImage,

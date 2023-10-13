@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="26.433594mm"
+   height="26.433594mm"
+   viewBox="0 0 26.433594 26.433594"
+   version="1.1"
+   id="svg1"
+   inkscape:version="1.3 (0e150ed6c4, 2023-07-21)"
+   sodipodi:docname="chat-avatar-src.svg"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:document-units="mm"
+     inkscape:zoom="1.4627806"
+     inkscape:cx="336.68754"
+     inkscape:cy="229.35771"
+     inkscape:window-width="1920"
+     inkscape:window-height="1017"
+     inkscape:window-x="-8"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="layer1"
+     showgrid="false" />
+  <defs
+     id="defs1" />
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(-170.61914,-6.6796878)">
+    <g
+       id="g35"
+       inkscape:export-filename="placeholder-F.svg"
+       inkscape:export-xdpi="96"
+       inkscape:export-ydpi="96"
+       inkscape:label="Placeholder-F">
+      <path
+         style="-inkscape-font-specification:'Gotham Bold';stroke-width:2.73493"
+         d="m 188.12909,16.534887 v -2.268056 h -8.63481 v 11.34028 h 2.49486 v -4.390308 h 5.41093 v -2.268056 h -5.41093 v -2.41386 z"
+         id="text6"
+         aria-label="F" />
+      <path
+         style="color:#000000;fill:#1a1a1a;-inkscape-stroke:none"
+         d="m 173.9043,6.6796875 c -1.81127,0 -3.28516,1.4738846 -3.28516,3.2851563 V 29.828125 c 0,1.811272 1.47389,3.285156 3.28516,3.285156 h 19.86328 c 1.81127,0 3.28515,-1.473884 3.28515,-3.285156 V 9.9648438 c 0,-1.8112717 -1.47388,-3.2851563 -3.28515,-3.2851563 z m 0,1.0078125 h 19.86328 c 1.27017,0 2.27734,1.0071753 2.27734,2.2773438 V 29.828125 c 0,1.270168 -1.00717,2.277344 -2.27734,2.277344 H 173.9043 c -1.27017,0 -2.27735,-1.007176 -2.27735,-2.277344 V 9.9648438 c 0,-1.2701685 1.00718,-2.2773438 2.27735,-2.2773438 z"
+         id="rect6" />
+    </g>
+  </g>
+</svg>

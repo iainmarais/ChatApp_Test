@@ -99,6 +99,9 @@ flutter:
   #       - asset: fonts/TrajanPro_Bold.ttf
   #         weight: 700
   fonts:
+    - family: icomoon
+    - fonts:
+        - asset: fonts/icomoon.ttf
     - family: Times New Roman
       fonts:
         - asset: fonts/times.ttf
