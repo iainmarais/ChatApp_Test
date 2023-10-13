@@ -9,11 +9,12 @@
 //Build out the forum view, essentially a modified chat view that uses a category key to load in any chat sessions for that category.
 //Need a name... Buzztalk or Buzzchat? Don't want to run afoul of buzzfeed.
 
+import "package:app02/Controllers/ThemeController.dart";
+import "package:app02/Views/MainView.dart";
 import "package:flutter/material.dart";
 
 //Our app namespaces here:
 import "./Views/LoginView.dart";
-import "./Views/MainView.dart";
 import "./Utils/AuthManager.dart";
 import "./Views/LoadScreen.dart";
 
@@ -24,7 +25,6 @@ void main() async
   await authManager.initialiseSupabase();
   final isServerLive = await authManager.IsServerLive(const Duration(seconds:5));
   runApp(ChatApp(authManager: authManager, isServerLive: isServerLive));
-  debugDumpRenderTree();
 }
 
 //Entry point class for this app:
@@ -50,7 +50,7 @@ class ChatApp extends StatelessWidget
   {
     return  MaterialApp(
       title: "Chat",
-      theme: darkTheme,
+      theme: ThemeController.currentTheme,
        home:  isServerLive ? 
        LoadScreen(authManager: authManager)
        :StreamBuilder(

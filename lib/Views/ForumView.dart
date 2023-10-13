@@ -5,15 +5,20 @@
 
 import 'package:flutter/material.dart';
 
+import '../Utils/AuthManager.dart';
+
+
 class ForumView extends StatefulWidget
 {
-  const ForumView({Key? key}) : super(key: key);
+  final AuthManager authManager;
+  const ForumView({required this.authManager,super.key});
 
   @override
   State<ForumView> createState() => _ForumViewState();
 }
 class _ForumViewState extends State<ForumView>
 {
+  get _authManager => widget.authManager;
   @override
   Widget build(BuildContext context)
   {
