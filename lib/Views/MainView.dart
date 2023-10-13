@@ -63,7 +63,7 @@ get _authManager => widget.authManager;
         actions: [
           TextButton(
             onPressed: SwapTheme,
-            child: const Text("Switch theme")
+            child:  Text("Switch theme",style: Theme.of(context).textTheme.labelLarge)
             ),
           TextButton.icon(
             icon: Icon(Icons.logout, color: Theme.of(context).colorScheme.onBackground,),
