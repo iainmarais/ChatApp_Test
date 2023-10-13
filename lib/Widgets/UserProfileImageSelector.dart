@@ -26,6 +26,7 @@ class _UserProfileImageSelectorState extends State<UserProfileImageSelector>
   bool? _UseLargeImagePreview;
   //Enable autogenerator:
   bool? UseTransparency = false;
+  bool? UseInvertedColours = false;
 
   @override
   void initState() 
@@ -63,7 +64,7 @@ class _UserProfileImageSelectorState extends State<UserProfileImageSelector>
   void AutoGenerateProfileImage()
   {
     String? ThemeName;
-    if (Theme.of(context).brightness == Brightness.dark)
+    if (Theme.of(context).brightness == Brightness.dark || UseInvertedColours==true)
     {
       ThemeName = "dark";
     }
@@ -168,8 +169,17 @@ class _UserProfileImageSelectorState extends State<UserProfileImageSelector>
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
+            const Text("Use inverted colours:"),
+            const SizedBox(width: 10),
+            Checkbox(value: UseInvertedColours,
+                    onChanged: (value){
+                      setState(() {
+                        UseInvertedColours = value;
+                      });
+                    }),
+            const SizedBox(width: 60),
             const Text("Use transparency: "),
-            const SizedBox(width: 20),
+            const SizedBox(width: 10),
             Checkbox(value: UseTransparency, 
                     onChanged: (value){
                       setState(() {
@@ -178,6 +188,8 @@ class _UserProfileImageSelectorState extends State<UserProfileImageSelector>
                     })
           ],
         ),
+        //Add some spacing between this and the buttons:
+        const SizedBox(height: 20),
         //Functions:
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -197,7 +209,7 @@ class _UserProfileImageSelectorState extends State<UserProfileImageSelector>
             ElevatedButton.icon(
               onPressed: AutoGenerateProfileImage,
               icon: const Icon(Icons.autorenew),
-              label: const Text("Auto-generate image"),
+              label: const Text("Generate default image"),
             )
           ]
 
