@@ -51,9 +51,9 @@ class ChatApp extends StatelessWidget
     return  MaterialApp(
       title: "Chat",
       theme: ThemeController.currentTheme,
-       home:  isServerLive ? 
-       LoadScreen(authManager: authManager)
-       :StreamBuilder(
+        home:  isServerLive ? 
+        LoadScreen(authManager: authManager)
+        :StreamBuilder(
               stream: authManager.tokenStream,
               builder: (context, snapshot) 
               {
@@ -68,6 +68,6 @@ class ChatApp extends StatelessWidget
               }
             )
           
-       );
+      );
   }
 }
