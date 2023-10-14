@@ -10,6 +10,8 @@ import "dart:io";
 
 import "package:app02/Utils/AuthManager.dart";
 import "package:flutter/material.dart";
+import "package:theme_provider/theme_provider.dart";
+import "../Widgets/CycleThemeElevatedButton.dart";
 //App namespaces
 import "../Widgets/UserProfileImageSelector.dart";
 class LoginView extends StatefulWidget 
@@ -150,162 +152,176 @@ class _LoginViewState extends State<LoginView>
       });
     }
   }
- 
+  //Login form:
+ Widget LoginFormContent()
+ {
+  return SingleChildScrollView(
+    //Use Padding: 16 all dirs:
+    padding: const EdgeInsets.all(16),
+    child: Form(
+      key: _formKey,
+      child:Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (IsInRegistrationMode == true) UserProfileImageSelector(username: _username, onImageSelected: (image)
+            {
+            _SelectedImage=image;
+            }),
+          TextFormField(
+            decoration: const InputDecoration(
+              labelText: "Email address",
+                ),
+                //Disable autocorrect and autocapitalise:
+              keyboardType: TextInputType.emailAddress,
+              autocorrect: false,
+              textCapitalization: TextCapitalization.none,
+              validator: (value) 
+                {
+                  if(value==null || value.trim().isEmpty)
+                  {
+                    return "Please enter a username or email address";
+                  }
+                  //If all is good:
+                  return null;
+                },
+                onSaved: (value)
+                {
+                  _email_address = value!;
+                }
+              ),
+          //Render this only if in registration mode:
+          if(IsInRegistrationMode ==true)
+          TextFormField(
+            decoration: const InputDecoration(
+              labelText: "Username",
+            ),
+            //Disable autocorrect and autocapitalise:
+            autocorrect: false,
+            textCapitalization: TextCapitalization.none,
+            enableSuggestions: false,
+            validator: (value)
+            {
+              if(value==null || value.trim().isEmpty || value.trim().length < 4)
+              {
+                return "Please enter a username of at least 4 characters.";
+              }
+              //If all is good:
+              return null;
+            },
+            onSaved: (value)
+            {
+              _username = value!;
+            }
+          ),
+          TextFormField(
+            decoration: const InputDecoration(
+              labelText: "Password"
+                ),
+                //Disable autocorrect and autocapitalise:
+              obscureText: true,
+              autocorrect: false,
+              textCapitalization: TextCapitalization.none,
+              keyboardType: TextInputType.text,
+              validator: (value)
+                {
+                  if(value==null || value.trim().length < 6)
+                  {
+                    return "Please enter a valid password of at least 6 characters.";
+                  }
+                  //If all is good:
+                  return null;
+                },
+              onSaved: (value)
+                {
+                  _password = value!;
+                }
+              ),
+          const SizedBox(height: 20),
+        ]
+      )
+    )
+  );
+}
+
   @override
   Widget build(BuildContext context)
   {
-    Widget LoginFormContent = SingleChildScrollView(
-                  //Use Padding: 16 all dirs:
-                  padding: const EdgeInsets.all(16),
-                  child: Form(
-                    key: _formKey,
-                    child:Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        if (IsInRegistrationMode == true) UserProfileImageSelector(username: _username, onImageSelected: (image)
-                          {
-                          _SelectedImage=image;
-                          }),
-                        TextFormField(
-                          decoration: const InputDecoration(
-                            labelText: "Email address",
-                              ),
-                              //Disable autocorrect and autocapitalise:
-                            keyboardType: TextInputType.emailAddress,
-                            autocorrect: false,
-                            textCapitalization: TextCapitalization.none,
-                            validator: (value) 
-                              {
-                                if(value==null || value.trim().isEmpty)
-                                {
-                                  return "Please enter a username or email address";
-                                }
-                                //If all is good:
-                                return null;
-                              },
-                              onSaved: (value)
-                              {
-                                _email_address = value!;
-                              }
-                            ),
-                        //Render this only if in registration mode:
-                        if(IsInRegistrationMode ==true)
-                        TextFormField(
-                          decoration: const InputDecoration(
-                            labelText: "Username",
-                          ),
-                          //Disable autocorrect and autocapitalise:
-                          autocorrect: false,
-                          textCapitalization: TextCapitalization.none,
-                          enableSuggestions: false,
-                          validator: (value)
-                          {
-                            if(value==null || value.trim().isEmpty || value.trim().length < 4)
-                            {
-                              return "Please enter a username of at least 4 characters.";
-                            }
-                            //If all is good:
-                            return null;
-                          },
-                          onSaved: (value)
-                          {
-                            _username = value!;
-                          }
-                        ),
-                        TextFormField(
-                          decoration: const InputDecoration(
-                            labelText: "Password"
-                              ),
-                              //Disable autocorrect and autocapitalise:
-                            obscureText: true,
-                            autocorrect: false,
-                            textCapitalization: TextCapitalization.none,
-                            keyboardType: TextInputType.text,
-                            validator: (value)
-                              {
-                                if(value==null || value.trim().length < 6)
-                                {
-                                  return "Please enter a valid password of at least 6 characters.";
-                                }
-                                //If all is good:
-                                return null;
-                              },
-                            onSaved: (value)
-                              {
-                                _password = value!;
-                              }
-                            ),
-                        const SizedBox(height: 20),
-                      ]
-                    )
-                  )
-                );
-    
     //Switch the form based on the state of the IsRegistration boolean prop:
-    Widget FormContent = LoginFormContent;
+    Widget FormContent = LoginFormContent();
     //Construct a form widget beneath a scaffold:
-    return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.background,
-      appBar: AppBar(
-      title: IsInRegistrationMode? const Text("Register"):const Text("Login")
-      ),
-      body: Center(
-        child: SingleChildScrollView(
-          child: Column(
-            //Cols for username and pw:
-            children: [
-              Container(
-                //Use a margin around the image:
-                margin: const EdgeInsets.only(
-                  //Use these for TBLR: 30,20,20,20:
-                  top: 30,
-                  bottom: 20,
-                  left: 20,
-                  right: 20
-                ),
-                //Use width = 200 and height = 200:
-                width: 200,
-                height: 200,
-                child: Image.asset(
-                  "images/chat-speechbubbles.png",
+    return ThemeProvider(
+      child: ThemeConsumer(
+        child: Builder(
+          builder: (context) {
+            return Scaffold(
+              backgroundColor: Theme.of(context).colorScheme.background,
+              appBar: AppBar(
+              title: IsInRegistrationMode? const Text("Register"):const Text("Login"),
+              actions: const [
+                CycleThemeElevatedIconButton(icon: Icons.swap_horiz, label: "Change theme",),
+              ],
+              ),
+              body: Center(
+                child: SingleChildScrollView(
+                  child: Column(
+                    //Cols for username and pw:
+                    children: [
+                      Container(
+                        //Use a margin around the image:
+                        margin: const EdgeInsets.only(
+                          //Use these for TBLR: 30,20,20,20:
+                          top: 30,
+                          bottom: 20,
+                          left: 20,
+                          right: 20
+                        ),
+                        //Use width = 200 and height = 200:
+                        width: 200,
+                        height: 200,
+                        child: Image.asset(
+                          "images/chat-speechbubbles.png",
+                        )
+                      ),
+                      //Create a new card widget and a scrollable view inside it:
+                      Card(
+                          margin: const EdgeInsets.all(20),
+                          child:Column(
+                            children: [
+                              FormContent,
+                              IsProcessing 
+                              ? const Column(
+                                children: [
+                                  CircularProgressIndicator(),
+                                  SizedBox(height: 20),
+                                  Text("Waiting for response...")
+                                ],
+                              )
+                              : Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [                      
+                                    TextButton(
+                                      //Toggle the state of the IsRegistration boolean prop:
+                                      onPressed: SwitchForm,
+                                      child: IsInRegistrationMode ? const Text("New user: "):const Text("Existing user:")
+                                    ),
+                                    const SizedBox(width: 20),
+                                    ElevatedButton(
+                                      onPressed: IsInRegistrationMode ? _HandleRegister:_HandleLogin,
+                                      child: IsInRegistrationMode ? const Text("Register") : const Text("Log in"),
+                                    ),
+                                  ],
+                                ),
+                              const SizedBox(height: 20),
+                            ],
+                          )
+                      )
+                    ]
+                  )
                 )
               ),
-              //Create a new card widget and a scrollable view inside it:
-              Card(
-                  margin: const EdgeInsets.all(20),
-                  child:Column(
-                    children: [
-                      FormContent,
-                      IsProcessing 
-                      ? const Column(
-                        children: [
-                          CircularProgressIndicator(),
-                          SizedBox(height: 20),
-                          Text("Waiting for response...")
-                        ],
-                      )
-                      : Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [                      
-                            TextButton(
-                              //Toggle the state of the IsRegistration boolean prop:
-                              onPressed: SwitchForm,
-                              child: IsInRegistrationMode ? const Text("New user: "):const Text("Existing user:")
-                            ),
-                            const SizedBox(width: 20),
-                            ElevatedButton(
-                              onPressed: IsInRegistrationMode ? _HandleRegister:_HandleLogin,
-                              child: IsInRegistrationMode ? const Text("Register") : const Text("Log in"),
-                            ),
-                          ],
-                        ),
-                      const SizedBox(height: 20),
-                    ],
-                  )
-              )
-            ]
-          )
-        )
+            );
+          }
+        ),
       ),
     );
   }

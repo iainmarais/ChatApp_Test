@@ -1,12 +1,15 @@
 // ignore_for_file: file_names, class_names, non_constant_identifier_names
 
+import "dart:developer";
+
 import "package:flutter/material.dart";
 import "../Utils/AuthManager.dart";
 
 class ChatMessageList extends StatefulWidget
 {
   final AuthManager authManager;
-  const ChatMessageList({super.key, required this.authManager});
+  final Theme? theme;
+  const ChatMessageList({super.key, required this.authManager, this.theme});
   @override
   State<ChatMessageList> createState() => _ChatMessageListState();
 }
@@ -22,6 +25,7 @@ class _ChatMessageListState extends State<ChatMessageList>
         stream: _authManager.RetrieveChatMessages() as Stream<List<Map<String, dynamic>>>,
         builder:(context, snapshot)
         {
+          log(snapshot.data.toString());
           if(snapshot.data != null && snapshot.data!.isNotEmpty)
           {
             return ListView.builder(
@@ -31,7 +35,6 @@ class _ChatMessageListState extends State<ChatMessageList>
                 return Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: ListTile(
-                    tileColor: Theme.of(context).colorScheme.onPrimary,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                     //Create a chat message widget for each message found in the database.
                     leading: Container(
@@ -45,7 +48,7 @@ class _ChatMessageListState extends State<ChatMessageList>
                       ),
                     ),
                     ),
-                    title: Text(snapshot.data![index]["username"] ?? "", style: const TextStyle(fontWeight: FontWeight.bold),) ,
+                    title: Text(snapshot.data![index]["sender"] ?? ""), 
                     subtitle: Text(snapshot.data![index]["content"] ?? ""),
                   ),
                 );

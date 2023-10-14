@@ -9,9 +9,9 @@
 //Build out the forum view, essentially a modified chat view that uses a category key to load in any chat sessions for that category.
 //Need a name... Buzztalk or Buzzchat? Don't want to run afoul of buzzfeed.
 
-import "package:app02/Controllers/ThemeController.dart";
 import "package:app02/Views/MainView.dart";
 import "package:flutter/material.dart";
+import "package:theme_provider/theme_provider.dart";
 
 //Our app namespaces here:
 import "./Views/LoginView.dart";
@@ -33,41 +33,121 @@ class ChatApp extends StatelessWidget
   final bool isServerLive;
   final AuthManager authManager;
   const ChatApp({super.key, required this.authManager, required this.isServerLive});
-  //Create a theme that can be used globally:
-  static get darkTheme => ThemeData(
-    brightness: Brightness.dark,
-    colorScheme: ColorScheme.fromSeed(seedColor: const Color.fromARGB(255, 45, 20, 102), brightness: Brightness.dark)
-  );
-  static get lightTheme => ThemeData(
-    brightness: Brightness.light,
-    //use a seed colour value around a dark purple:
-    colorScheme: ColorScheme.fromSeed(seedColor: const Color.fromARGB(255, 45, 20, 102), brightness: Brightness.light)
-  );
-
 
   @override
   Widget build(BuildContext context) 
   {
-    return  MaterialApp(
-      title: "Chat",
-      theme: ThemeController.currentTheme,
-        home:  isServerLive ? 
-        LoadScreen(authManager: authManager)
-        :StreamBuilder(
-              stream: authManager.tokenStream,
-              builder: (context, snapshot) 
-              {
-                  if (snapshot.hasData) 
-                  {
-                    return MainView(authManager:authManager);
-                  } 
-                  else 
-                  {
-                    return LoginView(authManager:authManager);
-                  }
-              }
+  return  ThemeProvider(
+      themes: [
+      AppTheme(
+        id: "darktheme_default",
+        data: ThemeData.dark().copyWith(
+          colorScheme: ColorScheme.fromSeed(
+            seedColor: Colors.purple)
+        ),
+        description: "Dark theme",
+      ),
+      AppTheme(
+        id:"lighttheme_default",
+        data: ThemeData.light().copyWith(
+          colorScheme: ColorScheme.fromSeed(
+            seedColor: Colors.blue.shade900)
+        ),
+        description: "Light theme",
+      ),
+      AppTheme(
+        id:"darktheme_darkpurple",
+        data: ThemeData(
+          colorScheme: ColorScheme.fromSeed(
+            brightness: Brightness.dark,
+            seedColor: const Color.fromARGB(255, 26, 0, 87)
+          ),
+          elevatedButtonTheme: ElevatedButtonThemeData(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color.fromARGB(255, 55, 33, 107),
+              foregroundColor:const Color.fromARGB(255, 255, 255, 255)
             )
-          
-      );
+          ),
+          appBarTheme: const AppBarTheme(
+            backgroundColor: Color.fromARGB(255, 32, 0, 90),
+            foregroundColor: Color.fromARGB(255, 255, 255, 255)
+          ),
+          listTileTheme: const ListTileThemeData(
+            tileColor: Color.fromARGB(255, 0, 71, 129),
+            textColor: Color.fromARGB(255, 255, 255, 255)
+          ),
+          textTheme: const TextTheme(
+            bodyLarge: TextStyle(color: Color.fromARGB(255, 255, 255, 255), fontFamily: "Gotham"),
+            bodyMedium: TextStyle(color: Color.fromARGB(255, 255, 255, 255), fontFamily: "Gotham"),
+            bodySmall: TextStyle(color: Color.fromARGB(255, 255, 255, 255), fontFamily: "Gotham"),
+            titleLarge: TextStyle(color: Color.fromARGB(255, 255, 255, 255), fontFamily: "Gotham"),
+            titleMedium: TextStyle(color: Color.fromARGB(255, 255, 255, 255), fontFamily: "Gotham"),
+            titleSmall: TextStyle(color: Color.fromARGB(255, 255, 255, 255), fontFamily: "Gotham"),
+          ),
+          scaffoldBackgroundColor: const Color.fromARGB(255, 15, 9, 66),
+        ),
+        description: "Dark theme (dark purple)",
+      ),
+      AppTheme(
+        id:"lighttheme_darkblue",
+        data: ThemeData(
+          colorScheme: ColorScheme.fromSeed(
+            brightness: Brightness.light,
+            seedColor: const Color.fromARGB(255, 0, 71, 129), 
+          ),
+          elevatedButtonTheme: ElevatedButtonThemeData(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color.fromARGB(255, 157, 211, 255),
+              foregroundColor: Colors.black
+            )
+          ),
+          appBarTheme: const AppBarTheme(
+            backgroundColor: Color.fromARGB(255, 255, 255, 255),
+            foregroundColor: Color.fromARGB(255, 0, 71, 129)
+          ),
+          listTileTheme: const ListTileThemeData(
+            tileColor: Color.fromARGB(255, 255, 255, 255),
+            textColor: Color.fromARGB(255, 0, 71, 129)
+          ),
+          textTheme: const TextTheme(
+            bodyLarge: TextStyle(color: Color.fromARGB(255, 0, 71, 129), fontFamily: "Gotham"),
+            bodyMedium: TextStyle(color: Color.fromARGB(255, 0, 71, 129), fontFamily: "Gotham"),
+            bodySmall: TextStyle(color: Color.fromARGB(255, 0, 71, 129), fontFamily: "Gotham"),
+            titleLarge: TextStyle(color: Color.fromARGB(255, 0, 71, 129), fontFamily: "Gotham"),
+            titleMedium: TextStyle(color: Color.fromARGB(255, 0, 71, 129), fontFamily: "Gotham"),
+            titleSmall: TextStyle(color: Color.fromARGB(255, 0, 71, 129), fontFamily: "Gotham")
+          ),
+          scaffoldBackgroundColor: const Color.fromARGB(255, 127, 150, 223),
+        ),
+        description: "Light theme (dark blue)"
+      ),
+    ],
+    child: ThemeConsumer(
+      child: Builder(
+        builder: (themeContext) 
+        {
+          return MaterialApp(
+            title: "Chat",
+              home:  isServerLive ? 
+              LoadScreen(authManager: authManager)
+              :StreamBuilder(
+                stream: authManager.tokenStream,
+                builder: (context, snapshot) 
+                {
+                    if (snapshot.hasData) 
+                    {
+                      return MainView(authManager:authManager);
+                    } 
+                    else 
+                    {
+                      return LoginView(authManager:authManager);
+                    }
+                }
+              )
+            );
+          }
+        ),
+      ),
+    );
   }
 }

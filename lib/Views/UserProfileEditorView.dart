@@ -3,6 +3,7 @@ import "dart:developer";
 import "dart:io";
 import 'package:flutter/material.dart';
 import "package:supabase_flutter/supabase_flutter.dart";
+import "package:theme_provider/theme_provider.dart";
 
 
 //Other namespaces needed:
@@ -138,95 +139,99 @@ class _UserProfileEditorViewState extends State<UserProfileEditorView>
   Widget build(BuildContext context)
   {
     //Use a scaffold here - this is a new view.
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text("Edit User Profile"),
-        actions: [
-          //Submit the changes:
-          TextButton.icon(
-            onPressed:(){
-              if(formKey.currentState!.validate())
-              {
-                formKey.currentState!.save();
-                //Update the database:
-                chatUser.username = newUsername;
-                chatUser.firstname = newFirstname;
-                chatUser.surname = newSurname;
-                chatUser.about = newAbout;
-                chatUser.emailAddress = newEmailAddress;
-                chatUser.profileImage = chatUser.profileImage;
-                widget.authManager.UpdateUserDetails(new_username: newUsername, new_firstname: newFirstname,new_surname: newSurname, new_about:newAbout, new_profileImage: chatUser.profileImage, new_emailAddress: newEmailAddress);
-                //Return to the previous view:
+    return ThemeConsumer(
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text("Edit User Profile"),
+          actions: [
+            //Submit the changes:
+            TextButton.icon(
+              onPressed:(){
+                if(formKey.currentState!.validate())
+                {
+                  formKey.currentState!.save();
+                  //Update the database:
+                  chatUser.username = newUsername;
+                  chatUser.firstname = newFirstname;
+                  chatUser.surname = newSurname;
+                  chatUser.about = newAbout;
+                  chatUser.emailAddress = newEmailAddress;
+                  chatUser.profileImage = chatUser.profileImage;
+                  widget.authManager.UpdateUserDetails(new_username: newUsername, new_firstname: newFirstname,new_surname: newSurname, new_about:newAbout, new_profileImage: chatUser.profileImage, new_emailAddress: newEmailAddress);
+                  //Return to the previous view:
+                  Navigator.pop(context);
+                }
+              },
+              icon: const Icon(Icons.check),
+              label: const Text("Submit"),
+            ),
+            //Exit/return to the previous view:
+            TextButton.icon(
+              onPressed: () {
                 Navigator.pop(context);
-              }
-            },
-            icon: const Icon(Icons.check),
-            label: const Text("Submit"),
+              },
+              icon: const Icon(Icons.arrow_back),
+              label: const Text("Cancel"),
+            )
+          ],
+        ),
+        body: SingleChildScrollView(
+          child: Form(
+            key: formKey,
+            child: IsProcessing == true 
+            ? const Column(
+              children:[
+                CircularProgressIndicator(),
+                SizedBox(height: 20.0),
+                Text("Waiting for response...")
+              ]
+            )
+            :Column(
+            children: <Widget>[
+              const SizedBox(height: 14.0),
+              const Text("Update your user profile details for your account."),
+              const SizedBox(height: 20.0),
+              UserProfileImageSelector(username: chatUser.username,onImageSelected: (profileImage)
+                {
+                  setState(() {
+                    _profileImage = profileImage;
+                    UpdateProfileImage();
+                  });
+                },
+                currentImage: chatUser.profileImage,
+                UseLargeImagePreview: true,
+              ),
+              const SizedBox(height: 10.0),
+              TextFormField(
+                controller: newUsernameController,
+                decoration: const InputDecoration(labelText: "Username"),
+                onChanged: (value) => newUsername = value,
+                ),
+              TextFormField(
+                controller: newFirstnameController,
+                decoration: const InputDecoration(labelText: "Firstname"),
+                onChanged: (value) => newFirstname = value,
+                ),
+              TextFormField(
+                controller: newSurnameController,
+                decoration: const InputDecoration(labelText: "Surname"),
+                onChanged: (value) => newSurname = value,
+                ),
+              TextFormField(
+                controller: newAboutController,
+                decoration: const InputDecoration(labelText: "About"),
+                onChanged: (value) => newAbout = value,
+                ),
+              TextFormField(
+                controller: newEmailAddressController,
+                decoration: const InputDecoration(labelText: "Email address"),
+                onChanged: (value) => newEmailAddress = value,
+                ),
+            ]
+           )
           ),
-          //Exit/return to the previous view:
-          TextButton.icon(
-            onPressed: () {
-              Navigator.pop(context);
-            },
-            icon: const Icon(Icons.arrow_back),
-            label: const Text("Cancel"),
-          )
-        ],
-      ),
-      body: Form(
-        key: formKey,
-        child: IsProcessing == true 
-        ? const Column(
-          children:[
-            CircularProgressIndicator(),
-            SizedBox(height: 20.0),
-            Text("Waiting for response...")
-          ]
         )
-        :Column(
-        children: <Widget>[
-          const SizedBox(height: 14.0),
-          const Text("Update your user profile details for your account."),
-          const SizedBox(height: 20.0),
-          UserProfileImageSelector(username: chatUser.username,onImageSelected: (profileImage)
-            {
-              setState(() {
-                _profileImage = profileImage;
-                UpdateProfileImage();
-              });
-            },
-            currentImage: chatUser.profileImage,
-            UseLargeImagePreview: true,
-          ),
-          const SizedBox(height: 10.0),
-          TextFormField(
-            controller: newUsernameController,
-            decoration: const InputDecoration(labelText: "Username"),
-            onChanged: (value) => newUsername = value,
-            ),
-          TextFormField(
-            controller: newFirstnameController,
-            decoration: const InputDecoration(labelText: "Firstname"),
-            onChanged: (value) => newFirstname = value,
-            ),
-          TextFormField(
-            controller: newSurnameController,
-            decoration: const InputDecoration(labelText: "Surname"),
-            onChanged: (value) => newSurname = value,
-            ),
-          TextFormField(
-            controller: newAboutController,
-            decoration: const InputDecoration(labelText: "About"),
-            onChanged: (value) => newAbout = value,
-            ),
-          TextFormField(
-            controller: newEmailAddressController,
-            decoration: const InputDecoration(labelText: "Email address"),
-            onChanged: (value) => newEmailAddress = value,
-            ),
-        ]
-       )
-      )
+      ),
     );
   }
 }

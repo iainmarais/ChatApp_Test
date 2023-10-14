@@ -4,6 +4,7 @@
 //Possibly include set of subforums?
 
 import 'package:flutter/material.dart';
+import 'package:theme_provider/theme_provider.dart';
 
 import '../Utils/AuthManager.dart';
 import 'UserProfileEditorView.dart';
@@ -21,6 +22,14 @@ class _ForumViewState extends State<ForumView>
 {
   get _authManager => widget.authManager;
 
+  void showThemeDialog(context)
+  {
+    showDialog(
+      context: context,
+      builder: (_) => ThemeConsumer(child: ThemeDialog())
+    );
+  }
+
   void HandleLogoff() async
   {
     await _authManager.client!.auth.signOut();
@@ -34,33 +43,120 @@ class _ForumViewState extends State<ForumView>
   @override
   Widget build(BuildContext context)
   {
-    return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.background,
-      appBar: AppBar(
-        title:const Text("Forum"),
-        actions: [
-          TextButton.icon(
-            icon: Icon(Icons.logout, color: Theme.of(context).colorScheme.onBackground),
-            label:Text("Log out", style: Theme.of(context).textTheme.labelLarge),
-            //Need to fix this so that the supabase token is cleared when the user logs out, and return to the login page.
-            onPressed: HandleLogoff,
-            ),
-            TextButton.icon(
-            icon: Icon(Icons.edit, color: Theme.of(context).colorScheme.onBackground,),
-            label: Text("Edit profile",style: Theme.of(context).textTheme.labelLarge),
-            onPressed: (){
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => UserProfileEditorView(authManager: _authManager)
+    return ThemeConsumer(
+      child: Builder(
+        builder: (context) {
+          return Scaffold(
+            appBar: AppBar(
+              title:const Text("Forum"),
+              actions: [
+                ElevatedButton.icon(
+                  icon: const Icon(Icons.swap_horiz),
+                  label: const Text("Change theme"),
+                  onPressed: () => showThemeDialog(context),
+                ),
+                ElevatedButton.icon(
+                  icon: const Icon(Icons.logout),
+                  label:const Text("Log out"),
+                  //Need to fix this so that the supabase token is cleared when the user logs out, and return to the login page.
+                  onPressed: HandleLogoff,
+                  ),
+                  ElevatedButton.icon(
+                  icon: const Icon(Icons.edit),
+                  label: const Text("Edit profile"),
+                  onPressed: (){
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => UserProfileEditorView(authManager: _authManager)
+                      )
+                    );
+                  },
                 )
-              );
-            },
-          )
-            ]
+                  ]
+            ),
+            //Title column: This column contains a number of subtitles and a title set to the name of the category.
+            body: const Column(
+              children: [
+                Flexible(
+                  //Can also use a list view builder to return the name of the active discussion and its appropriate column names.
+                  flex: 1,
+                  child: ListTile(
+                    title:Text("This is a placeholder for the actual discussion title or category name."),
+                    subtitle: Row(
+                      mainAxisSize: MainAxisSize.max,
+                      children: [
+                        Column(
+                          children: [
+                            Text("Topic"),
+                          ]
+                        ),
+                        Column(
+                          children: [
+                            Text("Views")
+                          ]
+                        ),
+                        Column(
+                          children: [
+                            Text("Replies")
+                          ]
+                        ),
+                        Column(
+                          children: [
+                            Text("Last post")
+                          ]
+                        ),
+                        Column(
+                          children: [
+                            Text("Started by")
+                          ]
+                        )
+                      ]
+                    )
+                  )
+                ),
+                Flexible(
+                  //Use a list view builder here.
+                  child: ListTile(
+                    subtitle: Column(
+                      children: [
+                        Row(
+                          children: [
+                            Column(
+                              children: [
+                                Text("Assassin's Creed series"),
+                              ],
+                            ),
+                            Column(
+                              children: [
+                                Text("100"),
+                              ],
+                            ),
+                            Column(
+                              children: [
+                                Text("24"),
+                              ],
+                            ),
+                            Column(
+                              children: [
+                                Text("3 days ago"),
+                              ],
+                            ),
+                            Column(
+                              children: [
+                                Text("<starter's username>"),
+                              ],
+                            )
+                          ]
+                        ),
+                      ]
+                    ),
+                  ),
+                )
+              ],
+            )
+          );
+        }
       ),
-      body: const Center(
-        child: Text("This is the forum. The idea for it is to be able to see users' discussions and be able to join one of them.")
-      )
     );
   }
 }

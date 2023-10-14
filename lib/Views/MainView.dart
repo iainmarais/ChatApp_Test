@@ -1,9 +1,8 @@
 // ignore_for_file: file_names, class_names, non_constant_identifier_names
-import 'dart:developer';
 
 import 'package:flutter/material.dart';
+import 'package:theme_provider/theme_provider.dart';
 
-import '../Controllers/ThemeController.dart';
 import '../Utils/AuthManager.dart';
 import 'ChatView.dart';
 import 'ForumView.dart';
@@ -20,6 +19,13 @@ class MainView extends StatefulWidget
 
 class _MainViewState extends State<MainView>
 {
+void showThemeDialog(context)
+{
+  showDialog(
+    context: context,
+    builder: (_) => ThemeConsumer(child: ThemeDialog())
+  );
+}
 get _authManager => widget.authManager;
 
   void _OpenChatView()
@@ -36,19 +42,6 @@ get _authManager => widget.authManager;
     );
   }
 
-  void SwapTheme()
-  {
-    log(ThemeController.currentTheme.toString());
-    if (ThemeController.currentTheme==ThemeController.LightTheme)
-    {
-      ThemeController.SwitchToDarkTheme();
-    }
-    else
-    {
-      ThemeController.SwitchToLightTheme();
-    }
-  }
-
    void HandleLogoff() async
   {
     await _authManager.client!.auth.signOut();
@@ -57,54 +50,67 @@ get _authManager => widget.authManager;
   @override
   Widget build(BuildContext context)
   {
-    return Scaffold(
-      appBar: AppBar(
-        title:const Text("Main"),
-        actions: [
-          TextButton(
-            onPressed: SwapTheme,
-            child:  Text("Switch theme",style: Theme.of(context).textTheme.labelLarge)
-            ),
-          TextButton.icon(
-            icon: Icon(Icons.logout, color: Theme.of(context).colorScheme.onBackground,),
-            label:Text("Log out", style: Theme.of(context).textTheme.labelLarge),
-            onPressed: HandleLogoff,
-          ),
-          TextButton.icon(
-            icon: Icon(Icons.edit, color: Theme.of(context).colorScheme.onBackground,),
-            label: Text("Edit profile",style: Theme.of(context).textTheme.labelLarge),
-            onPressed: (){
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => UserProfileEditorView(authManager: _authManager)
+    return ThemeConsumer(
+      child: Builder(
+        builder: (context) 
+        {
+          return Scaffold(
+            appBar: AppBar(
+              title:const Text("Main"),
+              actions: [
+                ElevatedButton.icon(
+                  icon: const Icon(Icons.swap_horiz),
+                  label: const Text("Change theme"),
+                  onPressed: () => showThemeDialog(context),
+                ),
+                ElevatedButton.icon(
+                  icon: const Icon(Icons.logout),
+                  label:const Text("Log out"),
+                  onPressed: HandleLogoff,
+                ),
+                ElevatedButton.icon(
+                  icon: const Icon(Icons.edit),
+                  label: const Text("Edit profile"),
+                  onPressed: (){
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => UserProfileEditorView(authManager: _authManager)
+                      )
+                    );
+                  },
                 )
-              );
-            },
-          )
-        ],
+              ],
+            ),
+            body: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text("Welcome to my app.", style: Theme.of(context).textTheme.headlineMedium),
+                  const SizedBox(height: 20),
+                  Text("You can chat and post in the forum.", style: Theme.of(context).textTheme.titleSmall),
+                  const SizedBox(height: 20),
+                  ElevatedButton.icon(
+                    onPressed: _OpenChatView,
+                    icon: const Icon(Icons.chat),
+                    label: const Text("Chat")
+                  ),
+                  const SizedBox(height: 20),
+                  ElevatedButton.icon(
+                    onPressed: _OpenForumView,
+                    icon: const Icon(Icons.forum),
+                    label: const Text("Forum")
+                  ),
+                  const SizedBox(height: 20),
+                  ElevatedButton.icon(
+                    onPressed: () => showThemeDialog(context), 
+                    icon: const Icon(Icons.color_lens),
+                    label: const Text("Show theme selector"))
+                ]
+              ),
+            )
+          );
+        }
       ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text("Welcome to my app.", style: Theme.of(context).textTheme.headlineMedium),
-            const SizedBox(height: 20),
-            Text("You can chat and post in the forum.", style: Theme.of(context).textTheme.titleSmall),
-            const SizedBox(height: 20),
-            ElevatedButton.icon(
-              onPressed: _OpenChatView,
-              icon: const Icon(Icons.chat),
-              label: const Text("Chat")
-            ),
-            const SizedBox(height: 20),
-            ElevatedButton.icon(
-              onPressed: _OpenForumView,
-              icon: const Icon(Icons.forum),
-              label: const Text("Forum")
-            ),
-          ]
-        ),
-      )
     );
   }
 }
